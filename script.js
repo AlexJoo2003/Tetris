@@ -2,7 +2,8 @@ var width = 10;
 var height = 20;
 
 var blocks = [
-    [[0,0],[1,0],[0,1],[1,1]]
+    [[0,0],[1,0],[0,1],[1,1]],
+    [[0,0],[0,1],[0,2],[1,2]]
 ];
 var current_block = [];
 var big_block = [];
@@ -10,7 +11,7 @@ var big_block = [];
 $("document").ready(function (){
 
     makeGrid();
-    spawnBlock(blocks[0]);
+    spawnBlock(blocks[1]);
 });
 
 function makeGrid(){
@@ -24,8 +25,20 @@ function makeGrid(){
 }
 
 function spawnBlock(block){
-    current_block = block;
-    renderBlock();
+    var spawn = true;
+    block.forEach(box => {
+        var x = box[0];
+        var y = box[1];
+        var id = "#"+x.toString() + y.toString();
+        if($(id).css("background-color") != ("rgb(34, 34, 34)")){
+            spawn = false;
+        }
+    });
+    if (spawn){
+        current_block = block;
+        renderBlock();
+        console.log("Spawned");
+    }
 }
 
 function renderBlock(){
@@ -41,9 +54,21 @@ function unRenderBlock(){
     for(var i=0; i<current_block.length; i++){
         var x = current_block[i][0];
         var y = current_block[i][1];
-        var id = "#"+x.toString() + y.toString();
-        $(id).css("background-color", "rgb(34, 34, 34)");
+        unRender(x,y);
+        // var id = "#"+x.toString() + y.toString();
+        // $(id).css("background-color", "rgb(34, 34, 34)");
     }
+}
+function unRender(x,y){
+    var id = "#"+x.toString() + y.toString();
+    $(id).css("background-color", "rgb(34, 34, 34)");
+}
+function Render(x,y){
+    if (y >= height){
+        return 0;
+    }
+    var id = "#"+x.toString() + y.toString();
+    $(id).css("background-color", "red");
 }
 
 
@@ -55,7 +80,8 @@ function moveBlock(direction){
             var y = current_block[i][1]+1;
             var id = "#"+x.toString() + y.toString();
             if(y > height){
-                spawnBlock(blocks[0]);
+                spawnBlock(blocks[1]);
+                checkLine();
                 break;
             }
             else if($(id).css("background-color") != "rgb(34, 34, 34)"){
@@ -68,7 +94,8 @@ function moveBlock(direction){
                     }
                 }
                 if (loop_break){
-                    spawnBlock(blocks[0]);   
+                    spawnBlock(blocks[1]);
+                    checkLine();   
                     break;
                 }
             }
@@ -87,7 +114,6 @@ function moveBlock(direction){
             var y = current_block[i][1];
             var id = "#"+x.toString() + y.toString();
             if(x > width){
-                //spawnBlock(blocks[0]);
                 break;
             }
             else if($(id).css("background-color") != "rgb(34, 34, 34)"){
@@ -100,7 +126,6 @@ function moveBlock(direction){
                     }
                 }
                 if (loop_break){
-                    //spawnBlock(blocks[0]);
                     break;
                 }
             }
@@ -119,7 +144,6 @@ function moveBlock(direction){
             var y = current_block[i][1];
             var id = "#"+x.toString() + y.toString();
             if(x < 0){
-                //spawnBlock(blocks[0]);
                 break;
             }
             else if($(id).css("background-color") != "rgb(34, 34, 34)"){
@@ -131,7 +155,6 @@ function moveBlock(direction){
                     }
                 }
                 if (loop_break){
-                    //spawnBlock(blocks[0]);
                     break;
                 }
             }
@@ -146,19 +169,37 @@ function moveBlock(direction){
 }
 
 function checkLine(){
+    findBigBox();
     for(var i=0; i<height; i++){
         var line_sum = 0;
-        big_block.forEach(box => {
+        big_block.forEach(function(box, index) {
             if (box[1] == i){
                 line_sum++;
             }
         });
-        console.log(i, line_sum);
         if(line_sum == width){
-            console.log("whole line on", i);
+            $(".box").each(function(){
+                var x = parseInt($(this).attr("id")[0]);
+                var y = parseInt($(this).attr("id").slice(1, $(this).attr("id").length));
+                var box = [x,y];
+                if(box[1] == i){
+                    unRender(x,y);
+                }
+            });
+            findBigBox();
+            var temp_block = big_block.slice().reverse();
+            temp_block.forEach(box => {
+                if (box[1] < i){
+                    var id = "#"+box[0].toString() + box[1].toString();
+                    unRender(box[0],box[1]);
+                    Render(box[0],box[1]+1);
+                }
+            });
+            findBigBox();
         }
     }
 }
+
 
 function findBigBox(){
     big_block = [];
@@ -175,7 +216,6 @@ function findBigBox(){
             });
             if(!is_current_block){
                 big_block.push(box);
-                // console.log(big_block, "pushed");
             }
         }
     });
@@ -193,8 +233,8 @@ $("body").keyup(function(e){
     }
     if (e.keyCode == 32){
         // checkLine();
-        findBigBox();
-        checkLine();
+        // findBigBox();
+        // checkLine();
     }
     // console.log(e.keyCode);
 });

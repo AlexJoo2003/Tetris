@@ -1,15 +1,12 @@
-var width = 6;
+var width = 7;
 var height = 10;
 
 var blocks = [
     {
         "positions":[
-            [[0,0],[1,0],[0,1],[1,1]],
-            [[0,0],[1,0],[0,1],[1,1]],
-            [[0,0],[1,0],[0,1],[1,1]],
             [[0,0],[1,0],[0,1],[1,1]]
         ],
-        "color": "red",
+        "color": "yellow",
         "current_position": 0,
         "offset": [0,0]
     },
@@ -20,7 +17,16 @@ var blocks = [
             [[0,0],[1,0],[1,1],[1,2]],
             [[0,1],[1,1],[2,1],[2,0]]
         ],
-        "color": "blue",
+        "color": "orange",
+        "current_position": 0,
+        "offset": [0,0]
+    },
+    {
+        "positions":[
+            [[0,0],[1,0],[2,0],[3,0]],
+            [[0,0],[0,1],[0,2],[0,3]]
+        ],
+        "color": "cyan",
         "current_position": 0,
         "offset": [0,0]
     }
@@ -33,7 +39,7 @@ var big_block = [];
 $("document").ready(function (){
 
     makeGrid();
-    spawnBlock(blocks[1]);
+    spawnBlock(blocks[2]);
 });
 
 function makeGrid(){
@@ -66,7 +72,7 @@ function spawnBlock(block){
 function rotateBlock(){
     unRenderBlock();
     current_block.current_position++;
-    if (current_block.current_position >= 4){
+    if (current_block.current_position >= current_block.positions.length){
         current_block.current_position = 0;
     }
     renderBlock();
@@ -124,16 +130,16 @@ function moveBlock(direction){
             break;
         }
         if($(id).css("background-color") != "rgb(34, 34, 34)"){
-            let goon = false;
+            let allow = false;
             current_block.positions[current_block.current_position].forEach(box => {
-                test_box = [...box];
+                var test_box = [...box];
                 test_box[0] += current_block.offset[0];
                 test_box[1] += current_block.offset[1];
                 if(JSON.stringify(test_box) == JSON.stringify([x,y])){
-                    goon = true;
+                    allow = true;
                 }
             });
-            if(!goon){
+            if(!allow){
                 if(direction == "down"){
                     spawnBlock(blocks[1]);
                     checkLine();

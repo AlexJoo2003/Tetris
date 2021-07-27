@@ -1,33 +1,79 @@
-var width = 7;
-var height = 10;
+var width = 10;
+var height = 20;
 
 var blocks = [
-    {
-        "positions":[
-            [[0,0],[1,0],[0,1],[1,1]]
+    { // I
+        "rotations":[
+            [[0,1],[1,1],[2,1],[3,1]],
+            [[2,0],[2,1],[2,2],[2,3]],
+            [[0,2],[1,2],[2,2],[3,2]],
+            [[1,0],[1,1],[1,2],[1,3]]
         ],
-        "color": "yellow",
-        "current_position": 0,
+        "color": "cyan",
+        "current_rotation": 0,
         "offset": [0,0]
     },
-    {
-        "positions":[
+    { // J
+        "rotations":[
+            [[0,0],[0,1],[1,1],[2,1]],
+            [[1,0],[2,0],[1,1],[1,2]],
+            [[0,1],[1,1],[2,1],[2,2]],
+            [[0,2],[1,2],[1,1],[1,0]]
+        ],
+        "color": "blue",
+        "current_rotation": 0,
+        "offset": [0,0]
+    },
+    { // L
+        "rotations":[
             [[0,0],[0,1],[0,2],[1,2]],
             [[0,0],[0,1],[1,0],[2,0]],
             [[0,0],[1,0],[1,1],[1,2]],
             [[0,1],[1,1],[2,1],[2,0]]
         ],
         "color": "orange",
-        "current_position": 0,
+        "current_rotation": 0,
         "offset": [0,0]
     },
-    {
-        "positions":[
-            [[0,0],[1,0],[2,0],[3,0]],
-            [[0,0],[0,1],[0,2],[0,3]]
+    { // O
+        "rotations":[
+            [[0,0],[1,0],[0,1],[1,1]]
         ],
-        "color": "cyan",
-        "current_position": 0,
+        "color": "yellow",
+        "current_rotation": 0,
+        "offset": [0,0]
+    },
+    { // S
+        "rotations":[
+            [[0,1],[1,1],[1,0],[2,0]],
+            [[1,0],[1,1],[2,1],[2,2]],
+            [[0,2],[1,2],[1,1],[2,1]],
+            [[0,0],[0,1],[1,1],[1,2]]
+        ],
+        "color": "lime",
+        "current_rotation": 0,
+        "offset": [0,0]
+    },
+    { // T
+        "rotations":[
+            [[0,1],[1,1],[1,0],[1,2]],
+            [[1,0],[1,1],[1,2],[2,1]],
+            [[0,1],[1,1],[2,1],[1,2]],
+            [[0,1],[1,0],[1,1],[1,2]]
+        ],
+        "color": "purple",
+        "current_rotation": 0,
+        "offset": [0,0]
+    },
+    { // Z
+        "rotations":[
+            [[0,0],[1,0],[1,1],[2,1]],
+            [[2,0],[2,1],[1,1],[1,2]],
+            [[0,1],[1,1],[1,2],[2,2]],
+            [[1,0],[1,1],[0,1],[0,2]]
+        ],
+        "color": "red",
+        "current_rotation": 0,
         "offset": [0,0]
     }
 ]
@@ -39,7 +85,7 @@ var big_block = [];
 $("document").ready(function (){
 
     makeGrid();
-    spawnBlock(blocks[2]);
+    spawnBlock(blocks[6]);
 });
 
 function makeGrid(){
@@ -55,7 +101,7 @@ function makeGrid(){
 
 function spawnBlock(block){
     var spawn = true;
-    block.positions[block.current_position].forEach(box => {
+    block.rotations[block.current_rotation].forEach(box => {
         var x = box[0];
         var y = box[1];
         var id = "#"+x.toString() + y.toString();
@@ -71,25 +117,49 @@ function spawnBlock(block){
 
 function rotateBlock(){
     unRenderBlock();
-    current_block.current_position++;
-    if (current_block.current_position >= current_block.positions.length){
-        current_block.current_position = 0;
+    let allow_rotation = false;
+    var test_block = Object.assign({}, current_block);
+    test_block.current_rotation++;
+    if (test_block.current_rotation >= test_block.rotations.length){
+        test_block.current_rotation = 0;
     }
-    renderBlock();
+    for(var i=0; i<test_block.rotations[0].length; i++){
+        var x = test_block.rotations[test_block.current_rotation][i][0] + test_block.offset[0];
+        var y = test_block.rotations[test_block.current_rotation][i][1] + test_block.offset[1];
+        var id = "#"+x.toString() + y.toString();
+        if (!$(id).length || $(id).css("background-color") != "rgb(34, 34, 34)"){
+            // console.log("there is something in the way");
+            // console.log(id);
+            allow_rotation = false;
+            break;
+        }
+        else{
+            // console.log("all good");
+            allow_rotation = true;
+        }
+    }
+    if(allow_rotation){
+        current_block.current_rotation++;
+        if (current_block.current_rotation >= current_block.rotations.length){
+            current_block.current_rotation = 0;
+        }
+    }
+
+   renderBlock();
 }
 
 function renderBlock(){
-    for(var i=0; i<current_block.positions[0].length; i++){
-        var x = current_block.positions[current_block.current_position][i][0] + current_block.offset[0];
-        var y = current_block.positions[current_block.current_position][i][1] + current_block.offset[1];
+    for(var i=0; i<current_block.rotations[0].length; i++){
+        var x = current_block.rotations[current_block.current_rotation][i][0] + current_block.offset[0];
+        var y = current_block.rotations[current_block.current_rotation][i][1] + current_block.offset[1];
         render(x,y,current_block.color);
     }
 }
 
 function unRenderBlock(){
-    for(var i=0; i<current_block.positions[0].length; i++){
-        var x = current_block.positions[current_block.current_position][i][0] + current_block.offset[0];
-        var y = current_block.positions[current_block.current_position][i][1] + current_block.offset[1];
+    for(var i=0; i<current_block.rotations[0].length; i++){
+        var x = current_block.rotations[current_block.current_rotation][i][0] + current_block.offset[0];
+        var y = current_block.rotations[current_block.current_rotation][i][1] + current_block.offset[1];
         unRender(x,y);
     }
 }
@@ -115,9 +185,9 @@ function moveBlock(direction){
         test_offset[0]--;
     }
     var change_offset = true;
-    for(var i=0; i<current_block.positions[0].length; i++){
-        var x = current_block.positions[current_block.current_position][i][0] + test_offset[0];
-        var y = current_block.positions[current_block.current_position][i][1] + test_offset[1];
+    for(var i=0; i<current_block.rotations[0].length; i++){
+        var x = current_block.rotations[current_block.current_rotation][i][0] + test_offset[0];
+        var y = current_block.rotations[current_block.current_rotation][i][1] + test_offset[1];
         var id = "#"+x.toString() + y.toString();
         if(y >= height){
             spawnBlock(blocks[1]);
@@ -131,7 +201,7 @@ function moveBlock(direction){
         }
         if($(id).css("background-color") != "rgb(34, 34, 34)"){
             let allow = false;
-            current_block.positions[current_block.current_position].forEach(box => {
+            current_block.rotations[current_block.current_rotation].forEach(box => {
                 var test_box = [...box];
                 test_box[0] += current_block.offset[0];
                 test_box[1] += current_block.offset[1];
@@ -199,10 +269,11 @@ function findBigBlock(){
     $(".box").each(function(){
         var x = parseInt($(this).attr("id")[0]);
         var y = parseInt($(this).attr("id").slice(1, $(this).attr("id").length));
+        var color = ""
         var box = [x,y];
         if($(this).css("background-color") != "rgb(34, 34, 34)"){
             var is_current_block = false;
-            current_block.positions[current_block.current_position].forEach(current_box => {
+            current_block.rotations[current_block.current_rotation].forEach(current_box => {
                 test_box = [...current_box];
                 test_box[0] += current_block.offset[0];
                 test_box[1] += current_block.offset[1];
@@ -216,7 +287,8 @@ function findBigBlock(){
         }
     });
     big_block.sort()
-    console.log(big_block);
+    // return big_block.length;
+    console.log(big_block, big_block.length);
 }
 
 $("body").keyup(function(e){

@@ -1,7 +1,8 @@
 var width = 10;
-var height = 20;
+var height = 10;
+var x_offset = Math.round(width/2)
 
-var blocks = [
+var tetros = [
     { // I
         "rotations":[
             [[0,1],[1,1],[2,1],[3,1]],
@@ -11,7 +12,7 @@ var blocks = [
         ],
         "color": "cyan",
         "current_rotation": 0,
-        "offset": [0,0]
+        "offset": [x_offset-2,0]
     },
     { // J
         "rotations":[
@@ -22,7 +23,7 @@ var blocks = [
         ],
         "color": "blue",
         "current_rotation": 0,
-        "offset": [0,0]
+        "offset": [x_offset-1,0]
     },
     { // L
         "rotations":[
@@ -33,7 +34,7 @@ var blocks = [
         ],
         "color": "orange",
         "current_rotation": 0,
-        "offset": [0,0]
+        "offset": [x_offset-1,0]
     },
     { // O
         "rotations":[
@@ -41,7 +42,7 @@ var blocks = [
         ],
         "color": "yellow",
         "current_rotation": 0,
-        "offset": [0,0]
+        "offset": [x_offset-1,0]
     },
     { // S
         "rotations":[
@@ -52,18 +53,18 @@ var blocks = [
         ],
         "color": "lime",
         "current_rotation": 0,
-        "offset": [0,0]
+        "offset": [x_offset-2,0]
     },
     { // T
         "rotations":[
-            [[0,1],[1,1],[1,0],[1,2]],
+            [[0,1],[1,1],[1,0],[2,1]],
             [[1,0],[1,1],[1,2],[2,1]],
             [[0,1],[1,1],[2,1],[1,2]],
             [[0,1],[1,0],[1,1],[1,2]]
         ],
         "color": "purple",
         "current_rotation": 0,
-        "offset": [0,0]
+        "offset": [x_offset-2,0]
     },
     { // Z
         "rotations":[
@@ -74,18 +75,18 @@ var blocks = [
         ],
         "color": "red",
         "current_rotation": 0,
-        "offset": [0,0]
+        "offset": [x_offset-2,0]
     }
 ]
 
-
-var current_block = [];
-var big_block = [];
+var tetro_list = [];
+var current_tetro = [];
+var squares = [];
 
 $("document").ready(function (){
-
     makeGrid();
-    spawnBlock(blocks[6]);
+    randomTetro();
+    spawnTetro();
 });
 
 function makeGrid(){
@@ -99,67 +100,110 @@ function makeGrid(){
     }
 }
 
-function spawnBlock(block){
+function randomTetro(){
+    var new_tetroes = 0;
+    if (tetro_list.length == 0){
+        new_tetroes = 2;
+    }
+    for(var i=0; i<=new_tetroes; i++){
+        // pushes a random integer between 0 and 6 (inclusive)
+        var random_number = Math.floor(Math.random() * (Math.floor(6)-Math.ceil(0)+1)+Math.ceil(0))
+        tetro_list.push(random_number);
+    }
+}
+
+function spawnTetro(){
+    // get the next tetro
+    var tetro = tetros[tetro_list[0]];
+    tetro_list.shift();
+    randomTetro();
+    var id = 0;
+    tetro_list.forEach(tetro_id => {
+        var tetro_letter = '';
+        switch (tetro_id){
+            case 0:
+                tetro_letter = 'I';
+                break;
+            case 1:
+                tetro_letter = 'J';
+                break;
+            case 2:
+                tetro_letter = 'L';
+                break;
+            case 3:
+                tetro_letter = 'O';
+                break;
+            case 4:
+                tetro_letter = 'S';
+                break;
+            case 5:
+                tetro_letter = 'T';
+                break;
+            case 6:
+                tetro_letter = 'Z';
+                break;
+        }
+        $(`.tetro#${id}`).html(`<img src="images/${tetro_letter}.png">`);
+        id++;
+    });
+
     var spawn = true;
-    block.rotations[block.current_rotation].forEach(box => {
+    tetro.rotations[tetro.current_rotation].forEach(box => { // checks if it can spawn
         var x = box[0];
         var y = box[1];
         var id = "#"+x.toString() + y.toString();
         if($(id).css("background-color") != ("rgb(34, 34, 34)")){
+            console.log("GAME OVER!!!");
             spawn = false;
         }
     });
-    if (spawn){
-        current_block = Object.assign({}, block);
-        renderBlock();
+    if (spawn){ // spawn the tetro
+        current_tetro = Object.assign({}, tetro);
+        renderTetro();
     }
 }
 
-function rotateBlock(){
-    unRenderBlock();
+function rotateTetro(){
+    unRenderTetro();
     let allow_rotation = false;
-    var test_block = Object.assign({}, current_block);
-    test_block.current_rotation++;
-    if (test_block.current_rotation >= test_block.rotations.length){
-        test_block.current_rotation = 0;
+    var test_tetro = Object.assign({}, current_tetro);
+    test_tetro.current_rotation++;
+    if (test_tetro.current_rotation >= test_tetro.rotations.length){
+        test_tetro.current_rotation = 0;
     }
-    for(var i=0; i<test_block.rotations[0].length; i++){
-        var x = test_block.rotations[test_block.current_rotation][i][0] + test_block.offset[0];
-        var y = test_block.rotations[test_block.current_rotation][i][1] + test_block.offset[1];
+    for(var i=0; i<test_tetro.rotations[0].length; i++){
+        var x = test_tetro.rotations[test_tetro.current_rotation][i][0] + test_tetro.offset[0];
+        var y = test_tetro.rotations[test_tetro.current_rotation][i][1] + test_tetro.offset[1];
         var id = "#"+x.toString() + y.toString();
         if (!$(id).length || $(id).css("background-color") != "rgb(34, 34, 34)"){
-            // console.log("there is something in the way");
-            // console.log(id);
             allow_rotation = false;
             break;
         }
         else{
-            // console.log("all good");
             allow_rotation = true;
         }
     }
     if(allow_rotation){
-        current_block.current_rotation++;
-        if (current_block.current_rotation >= current_block.rotations.length){
-            current_block.current_rotation = 0;
+        current_tetro.current_rotation++;
+        if (current_tetro.current_rotation >= current_tetro.rotations.length){
+            current_tetro.current_rotation = 0;
         }
     }
 
-   renderBlock();
+   renderTetro();
 }
 
-function renderBlock(){
-    for(var i=0; i<current_block.rotations[0].length; i++){
-        var x = current_block.rotations[current_block.current_rotation][i][0] + current_block.offset[0];
-        var y = current_block.rotations[current_block.current_rotation][i][1] + current_block.offset[1];
-        render(x,y,current_block.color);
+function renderTetro(){
+    for(var i=0; i<current_tetro.rotations[0].length; i++){
+        var x = current_tetro.rotations[current_tetro.current_rotation][i][0] + current_tetro.offset[0];
+        var y = current_tetro.rotations[current_tetro.current_rotation][i][1] + current_tetro.offset[1];
+        render(x,y,current_tetro.color);
     }
 }
-
-function unRenderBlock(){
-    for(var i=0; i<current_block.rotations[0].length; i++){
-        var x = current_block.rotations[current_block.current_rotation][i][0] + current_block.offset[0];
-        var y = current_block.rotations[current_block.current_rotation][i][1] + current_block.offset[1];
+function unRenderTetro(){
+    for(var i=0; i<current_tetro.rotations[0].length; i++){
+        var x = current_tetro.rotations[current_tetro.current_rotation][i][0] + current_tetro.offset[0];
+        var y = current_tetro.rotations[current_tetro.current_rotation][i][1] + current_tetro.offset[1];
         unRender(x,y);
     }
 }
@@ -172,9 +216,8 @@ function render(x,y,color){
     $(id).css("background-color", color);
 }
 
-
-function moveBlock(direction){
-    let test_offset = [...current_block.offset];
+function moveTetro(direction){
+    let test_offset = [...current_tetro.offset];
     if(direction == "down"){
         test_offset[1]++;
     }
@@ -185,33 +228,33 @@ function moveBlock(direction){
         test_offset[0]--;
     }
     var change_offset = true;
-    for(var i=0; i<current_block.rotations[0].length; i++){
-        var x = current_block.rotations[current_block.current_rotation][i][0] + test_offset[0];
-        var y = current_block.rotations[current_block.current_rotation][i][1] + test_offset[1];
+    for(var i=0; i<current_tetro.rotations[0].length; i++){
+        var x = current_tetro.rotations[current_tetro.current_rotation][i][0] + test_offset[0];
+        var y = current_tetro.rotations[current_tetro.current_rotation][i][1] + test_offset[1];
         var id = "#"+x.toString() + y.toString();
-        if(y >= height){
-            spawnBlock(blocks[1]);
+        if(y >= height){ // if tetro reached the bottom, next tetro
+            spawnTetro();
             checkLine();
             change_offset = false;
             break;
         }
-        if(x < 0 || x >= width){
+        if(x < 0 || x >= width){ // if hit the wall, do nothing
             change_offset = false;
             break;
         }
-        if($(id).css("background-color") != "rgb(34, 34, 34)"){
+        if($(id).css("background-color") != "rgb(34, 34, 34)"){ // hit a colored square
             let allow = false;
-            current_block.rotations[current_block.current_rotation].forEach(box => {
+            current_tetro.rotations[current_tetro.current_rotation].forEach(box => {
                 var test_box = [...box];
-                test_box[0] += current_block.offset[0];
-                test_box[1] += current_block.offset[1];
+                test_box[0] += current_tetro.offset[0];
+                test_box[1] += current_tetro.offset[1];
                 if(JSON.stringify(test_box) == JSON.stringify([x,y])){
                     allow = true;
                 }
             });
             if(!allow){
-                if(direction == "down"){
-                    spawnBlock(blocks[1]);
+                if(direction == "down"){ // fell on colored square
+                    spawnTetro();
                     checkLine();
                     change_offset = false;
                     break;
@@ -224,18 +267,17 @@ function moveBlock(direction){
         }
     }
     if (change_offset){
-        unRenderBlock();
-        current_block.offset = [...test_offset];
-        renderBlock();
+        unRenderTetro();
+        current_tetro.offset = [...test_offset];
+        renderTetro();
     }
 }
 
-
 function checkLine(){
-    findBigBlock();
+    findBigTetro();
     for(var i=0; i<height; i++){
         var line_sum = 0;
-        big_block.forEach(function(box) {
+        squares.forEach(function(box) {
             if (box[1] == i){
                 line_sum++;
             }
@@ -249,9 +291,9 @@ function checkLine(){
                     unRender(x,y);
                 }
             });
-            findBigBlock();
-            var temp_block = big_block.slice().reverse();
-            temp_block.forEach(box => {
+            findBigTetro();
+            var temp_tetro = squares.slice().reverse();
+            temp_tetro.forEach(box => {
                 if (box[1] < i){
                     var id = "#"+box[0].toString() + box[1].toString();
                     var color = $(id).css("background-color");
@@ -263,50 +305,49 @@ function checkLine(){
     }
 }
 
-
-function findBigBlock(){
-    big_block = [];
+function findBigTetro(){
+    squares = [];
     $(".box").each(function(){
         var x = parseInt($(this).attr("id")[0]);
         var y = parseInt($(this).attr("id").slice(1, $(this).attr("id").length));
         var color = ""
         var box = [x,y];
         if($(this).css("background-color") != "rgb(34, 34, 34)"){
-            var is_current_block = false;
-            current_block.rotations[current_block.current_rotation].forEach(current_box => {
+            var is_current_tetro = false;
+            current_tetro.rotations[current_tetro.current_rotation].forEach(current_box => {
                 test_box = [...current_box];
-                test_box[0] += current_block.offset[0];
-                test_box[1] += current_block.offset[1];
+                test_box[0] += current_tetro.offset[0];
+                test_box[1] += current_tetro.offset[1];
                 if(JSON.stringify(test_box) == JSON.stringify(box)){
-                    is_current_block = true;
+                    is_current_tetro = true;
                 }
             });
-            if(!is_current_block){
-                big_block.push(box);
+            if(!is_current_tetro){
+                squares.push(box);
             }
         }
     });
-    big_block.sort()
-    // return big_block.length;
-    console.log(big_block, big_block.length);
+    squares.sort()
+    // return squares.length;
+    // console.log(squares, squares.length);
 }
 
 $("body").keyup(function(e){
     if (e.keyCode == 40){ // down arrow key
-        moveBlock("down");
+        moveTetro("down");
     }
     if (e.keyCode == 37){ // left arrow key
-        moveBlock("left");
+        moveTetro("left");
     }
     if (e.keyCode == 39){ // right arrow key
-        moveBlock("right");
+        moveTetro("right");
     }
     if (e.keyCode == 38){ // up arrow key
-        rotateBlock();
+        rotateTetro();
     }
     if (e.keyCode == 32){
         // checkLine();
-        // findBigBlock();
+        // findBigTetro();
     }
     // console.log(e.keyCode);
 });

@@ -10,6 +10,7 @@ var tetris_line_score = single_line_score*8;
 var score_time_multiplyer = 0.5;
 var spare_tetro = false;
 var game_over = false;
+var quickFall = false;
 
 
 var tetros = [
@@ -131,6 +132,7 @@ function randomTetro(){
 
 function spawnTetro(){
     // get the next tetro
+    quickFall = false;
     var tetro = tetros[tetro_list[0]];
     tetro_list.shift();
     randomTetro();
@@ -171,9 +173,13 @@ function spawnTetro(){
         var id = "#"+x.toString() + y.toString();
         if($(id).css("background-color") != ("rgb(34, 34, 34)") && !game_over){
             game_over = true;
+            var audio = new Audio("sounds/mwapmwap.mp3");
+            audio.play();
             clearTimeout(tetro_fall_timeout);
-            alert(`game over\nYour score: ${score}\nrefresh to restart.`,"",function(){location.reload();});
             spawn = false;
+            setTimeout(function(){
+                alert(`game over\nYour score: ${score}\nrefresh to restart.`,"",function(){location.reload();});
+            }, 500);
         }
     });
     if (spawn){ // spawn the tetro
@@ -242,8 +248,12 @@ function moveTetro(direction){
     if(direction == "down"){
         test_offset[1]++;
         clearTimeout(tetro_fall_timeout);
-        tetro_fall_timeout = setTimeout(function (){moveTetro("down")}, tetro_fall_time);
-        clearTimeout()
+        if(quickFall){
+            tetro_fall_timeout = setTimeout(function (){moveTetro("down")}, 0);
+        }
+        else{
+            tetro_fall_timeout = setTimeout(function (){moveTetro("down")}, tetro_fall_time);
+        }
     }
     else if(direction == "right"){
         test_offset[0]++;
@@ -257,6 +267,8 @@ function moveTetro(direction){
         var y = current_tetro.rotations[current_tetro.current_rotation][i][1] + test_offset[1];
         var id = "#"+x.toString() + y.toString();
         if(y >= height){ // if tetro reached the bottom, next tetro
+            var audio = new Audio("sounds/pam.mp3");
+            audio.play();
             spawnTetro();
             checkLine();
             change_offset = false;
@@ -278,6 +290,8 @@ function moveTetro(direction){
             });
             if(!allow){
                 if(direction == "down"){ // fell on colored square
+                    var audio = new Audio("sounds/pam.mp3");
+                    audio.play();
                     spawnTetro();
                     checkLine();
                     change_offset = false;
@@ -330,6 +344,8 @@ function checkLine(){
         }
     }
     if(line_counter == 4){
+        var audio = new Audio("sounds/tada.mp3");
+        audio.play();
         score += tetris_line_score;
     }
     else{
@@ -390,10 +406,10 @@ $("body").keyup(function(e){
         if (e.keyCode == 38){ // up arrow key
             rotateTetro();
         }
-    }
-    if (e.keyCode == 32){
-        // checkLine();
-        // findBigTetro();
+        if (e.keyCode == 32){ // space
+            quickFall = true;
+            moveTetro("down");
+        }
     }
     // console.log(e.keyCode);
 });

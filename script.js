@@ -7,7 +7,7 @@ var tetro_fall_timeout;
 var score = 0;
 var single_line_score = 10;
 var tetris_line_score = single_line_score*8;
-var score_time_multiplyer = 0.5;
+var score_time_multiplyer = 0.01;
 var spare_tetro = false;
 var game_over = false;
 var quickFall = false;

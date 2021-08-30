@@ -1,13 +1,14 @@
 var width = 10;
 var height = 20;
 var x_offset = Math.round(width/2);
-var tetro_fall_time = 1500;
+var tetro_max_fall_time = 1500;
+var tetro_fall_time = tetro_max_fall_time;
 var tetro_min_fall_time = 100;
 var tetro_fall_timeout;
 var score = 0;
 var single_line_score = 10;
 var tetris_line_score = single_line_score*8;
-var score_time_multiplyer = 0.01;
+var score_time_multiplyer = 5;
 var spare_tetro = false;
 var game_over = false;
 var quickFall = false;
@@ -356,13 +357,21 @@ function checkLine(){
 
 function updateScore(){
     $(".score").html(score);
-    var new_tetro_fall_time = Math.round(tetro_fall_time - score*score_time_multiplyer);
+    var new_tetro_fall_time = Math.round(tetro_max_fall_time - score*score_time_multiplyer);
     if (new_tetro_fall_time<=tetro_min_fall_time){
         tetro_fall_time = tetro_min_fall_time;
     }
     else{
         tetro_fall_time = new_tetro_fall_time;
     }
+    console.log(tetro_fall_time);
+    // var new_tetro_fall_time = Math.round(tetro_fall_time - score*score_time_multiplyer);
+    // if (new_tetro_fall_time<=tetro_min_fall_time){
+    //     tetro_fall_time = tetro_min_fall_time;
+    // }
+    // else{
+    //     tetro_fall_time = new_tetro_fall_time;
+    // }
 }
 
 function findBigTetro(){
@@ -392,7 +401,10 @@ function findBigTetro(){
     // console.log(squares, squares.length);
 }
 
-$("body").keyup(function(e){
+$("body").keydown(function(e){
+    if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+        e.preventDefault(); // prevents moving the screen up and down
+    }
     if (!game_over){
         if (e.keyCode == 40){ // down arrow key
             moveTetro("down");
@@ -411,5 +423,4 @@ $("body").keyup(function(e){
             moveTetro("down");
         }
     }
-    // console.log(e.keyCode);
 });
